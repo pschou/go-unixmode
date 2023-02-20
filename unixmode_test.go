@@ -211,13 +211,15 @@ func ExampleNew() {
 
 func ExampleMode_FileMode() {
 	fm, _ := unixmode.Parse("dr-sr-srwx")
+
+	// This is the standard go FileMode output, basically only "rwx"
 	fmt.Printf("Unix mode: %q\n", fm.PermString())
+
+	// Note that Go FileMode does not show suid bits
 	fmt.Printf("Go FileMode: %q\n", fm.FileMode().Perm())
 	// Output:
 	// Unix mode: "r-sr-srwx"
 	// Go FileMode: "-r-xr-xrwx"
-
-	// Note that Go FileMode does not show suid bits
 }
 
 func ExampleModeFilemodeMode() {
