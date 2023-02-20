@@ -95,10 +95,11 @@ type Mode uint16
 // may be used in wire protocols or disk representations: they must not be
 // changed, although new bits might be added.
 const (
-	// These masks and bits can be used for determining set bits
-	// Pulled directly from lstat.  Also found in os/types.go as S_*.
+	// These masks and bits can be used for determining set bits.
+	// The Mode(uint16) has all the bit positions utilized 4+3+9=16.
+	// These are defined in lstat.c.  Also found in os/types.go as S_*.
 
-	// Types
+	// Types (upper 4 bits)
 	ModeTypeMask   Mode = 0170000 /* type of file mask */
 	ModeNamedPipe  Mode = 0010000 /* named pipe (fifo) */
 	ModeCharDevice Mode = 0020000 /* character special */
@@ -108,12 +109,12 @@ const (
 	ModeSymlink    Mode = 0120000 /* symbolic link */
 	ModeSocket     Mode = 0140000 /* socket */
 
-	// Sticky bits
+	// Set ID / Sticky (middle 3 bits)
 	ModeSetuid Mode = 0004000 /* set-user-ID on execution */
 	ModeSetgid Mode = 0002000 /* set-group-ID on execution */
 	ModeSticky Mode = 0001000 /* save swapped text even after use */
 
-	// Permissions
+	// Permissions (lower 9 bits)
 	ModeUserMask   Mode = 0000700 /* RWX mask for owner */
 	ModeReadUser   Mode = 0000400 /* R for owner */
 	ModeWriteUser  Mode = 0000200 /* W for owner */

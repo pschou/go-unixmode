@@ -2,6 +2,7 @@ package unixmode_test
 
 import (
 	"fmt"
+	"io/fs"
 	"log"
 	"os"
 
@@ -14,6 +15,22 @@ func ExampleMode_String() {
 
 	// Output:
 	// mode: "drwxr-xr-t "
+}
+
+func ExampleMode_Perm_parse() {
+	m, _ := unixmode.Parse("r-s-wSr-T")
+	fmt.Printf("mode: %04o\n", m.Perm())
+
+	// Output:
+	// mode: 7524
+}
+
+func ExampleMode_Perm() {
+	m := unixmode.Mode(041755)
+	fmt.Printf("mode: %04o\n", m.Perm())
+
+	// Output:
+	// mode: 1755
 }
 
 func ExampleMode_PermString() {
@@ -32,7 +49,7 @@ func ExampleMode_PermString_directory() {
 	// mode: "rwxr-xr-x"
 }
 
-func ExampleMode_PermString_stickyBits() {
+func ExampleMode_PermString_setUidBits() {
 	m := unixmode.Mode(06755)
 	fmt.Printf("mode: %q\n", m.PermString())
 
@@ -165,4 +182,69 @@ func ExampleParse_invalid() {
 	}
 	// Output:
 	// Err: Invalid 'S' at position 9
+}
+
+func ExampleNew() {
+	fm := fs.FileMode(0777 | fs.ModeSetuid)
+	fmt.Printf("Full unix mode: %07o\n", unixmode.New(fm))
+	fmt.Printf("Unix perms: %05o\n", unixmode.New(fm).Perm())
+	// Output:
+	// Full unix mode: 0104777
+	// Unix perms: 04777
+}
+
+func ExampleMode_FileMode() {
+	fm, _ := unixmode.Parse("dr-sr-srwx")
+	fmt.Printf("Unix mode: %q\n", fm.PermString())
+	fmt.Printf("Go FileMode: %q\n", fm.FileMode().Perm())
+	// Output:
+	// Unix mode: "r-sr-srwx"
+	// Go FileMode: "-r-xr-xrwx"
+
+	// Note that Go FileMode does not show suid bits
+}
+
+func ExampleModeFilemodeMode() {
+	modes := []unixmode.Mode{
+		unixmode.ModeNamedPipe,
+		unixmode.ModeCharDevice,
+		unixmode.ModeDir,
+		unixmode.ModeDevice,
+		unixmode.ModeRegular,
+		unixmode.ModeSymlink,
+		unixmode.ModeSocket,
+		02777 | unixmode.ModeRegular,
+		04525 | unixmode.ModeRegular,
+		01331 | unixmode.ModeRegular,
+	}
+	for _, m := range modes {
+		fi := m.FileMode()
+		m2 := unixmode.New(fi)
+		if m != m2 {
+			fmt.Printf("mode: %07o -> % 12o -> %07o\n", m, fi, m2)
+		}
+	}
+	// Output:
+}
+func ExampleFilemodeModeFilemode() {
+	modes := []fs.FileMode{
+		fs.ModeNamedPipe,
+		fs.ModeCharDevice | fs.ModeDevice,
+		fs.ModeDir,
+		fs.ModeDevice,
+		0,
+		fs.ModeSymlink,
+		fs.ModeSocket,
+		0777 | fs.ModeSetgid,
+		0525 | fs.ModeSetuid,
+		0331 | fs.ModeSticky,
+	}
+	for _, fi := range modes {
+		m := unixmode.New(fi)
+		fi2 := m.FileMode()
+		if fi != fi2 {
+			fmt.Printf("mode: % 12o -> %07o -> % 12o\n", fi, m, fi2)
+		}
+	}
+	// Output:
 }
