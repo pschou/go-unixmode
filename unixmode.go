@@ -25,7 +25,7 @@
 // Conversely, to get a file permission in string format:
 //
 //   stat, _ := os.Lstat("/tmp")
-//   m := stat.Mode()
+//   m := stat.FileMode()
 //   fmt.Printf("mode: %q\n", unixmode.FileModeString(m))
 //
 // Which will return, "drwxrwxrwt "
@@ -86,11 +86,11 @@ import (
 	"strings"
 )
 
-// A UnixMode represents a file's mode and permission bits.
+// A Mode represents a file's mode and permission bits.
 // The bits are used in the POSIX definition.
-type UnixMode uint16
+type Mode uint16
 
-// The defined file mode bits are the most significant bits of the UnixMode.
+// The defined file mode bits are the most significant bits of the Mode.
 // The values of these bits are defined by the Unix filemode standard and
 // may be used in wire protocols or disk representations: they must not be
 // changed, although new bits might be added.
@@ -99,33 +99,33 @@ const (
 	// Pulled directly from lstat.  Also found in os/types.go as S_*.
 
 	// Types
-	ModeTypeMask   UnixMode = 0170000 /* type of file mask */
-	ModeNamedPipe  UnixMode = 0010000 /* named pipe (fifo) */
-	ModeCharDevice UnixMode = 0020000 /* character special */
-	ModeDir        UnixMode = 0040000 /* directory */
-	ModeDevice     UnixMode = 0060000 /* block special */
-	ModeRegular    UnixMode = 0100000 /* regular */
-	ModeSymlink    UnixMode = 0120000 /* symbolic link */
-	ModeSocket     UnixMode = 0140000 /* socket */
+	ModeTypeMask   Mode = 0170000 /* type of file mask */
+	ModeNamedPipe  Mode = 0010000 /* named pipe (fifo) */
+	ModeCharDevice Mode = 0020000 /* character special */
+	ModeDir        Mode = 0040000 /* directory */
+	ModeDevice     Mode = 0060000 /* block special */
+	ModeRegular    Mode = 0100000 /* regular */
+	ModeSymlink    Mode = 0120000 /* symbolic link */
+	ModeSocket     Mode = 0140000 /* socket */
 
 	// Sticky bits
-	ModeSetuid UnixMode = 0004000 /* set-user-ID on execution */
-	ModeSetgid UnixMode = 0002000 /* set-group-ID on execution */
-	ModeSticky UnixMode = 0001000 /* save swapped text even after use */
+	ModeSetuid Mode = 0004000 /* set-user-ID on execution */
+	ModeSetgid Mode = 0002000 /* set-group-ID on execution */
+	ModeSticky Mode = 0001000 /* save swapped text even after use */
 
 	// Permissions
-	ModeUserMask   UnixMode = 0000700 /* RWX mask for owner */
-	ModeReadUser   UnixMode = 0000400 /* R for owner */
-	ModeWriteUser  UnixMode = 0000200 /* W for owner */
-	ModeExecUser   UnixMode = 0000100 /* X for owner */
-	ModeGroupMask  UnixMode = 0000070 /* RWX mask for group */
-	ModeReadGroup  UnixMode = 0000040 /* R for group */
-	ModeWriteGroup UnixMode = 0000020 /* W for group */
-	ModeExecGroup  UnixMode = 0000010 /* X for group */
-	ModeOtherMask  UnixMode = 0000007 /* RWX mask for other */
-	ModeReadOther  UnixMode = 0000004 /* R for other */
-	ModeWriteOther UnixMode = 0000002 /* W for other */
-	ModeExecOther  UnixMode = 0000001 /* X for other */
+	ModeUserMask   Mode = 0000700 /* RWX mask for owner */
+	ModeReadUser   Mode = 0000400 /* R for owner */
+	ModeWriteUser  Mode = 0000200 /* W for owner */
+	ModeExecUser   Mode = 0000100 /* X for owner */
+	ModeGroupMask  Mode = 0000070 /* RWX mask for group */
+	ModeReadGroup  Mode = 0000040 /* R for group */
+	ModeWriteGroup Mode = 0000020 /* W for group */
+	ModeExecGroup  Mode = 0000010 /* X for group */
+	ModeOtherMask  Mode = 0000007 /* RWX mask for other */
+	ModeReadOther  Mode = 0000004 /* R for other */
+	ModeWriteOther Mode = 0000002 /* W for other */
+	ModeExecOther  Mode = 0000001 /* X for other */
 
 )
 
@@ -171,8 +171,8 @@ func FileModeTypeLetter(m fs.FileMode) byte {
 	return '?'
 }
 
-// Return the TypeLetter defined in the UnixMode bits.
-func (m UnixMode) TypeLetter() byte {
+// Return the TypeLetter defined in the Mode bits.
+func (m Mode) TypeLetter() byte {
 	switch m & ModeTypeMask {
 	/* These are the most common, so test for them first.  */
 	case ModeRegular:
@@ -213,7 +213,7 @@ func (m UnixMode) TypeLetter() byte {
 	return '?'
 }
 
-// Return the UnixMode with the TypeLetter + PermString + " "
+// Return the Mode with the TypeLetter + PermString + " "
 // The extra space is for compatibility with 4.4BSD strmode
 func FileModeString(m fs.FileMode) string {
 	var buf [11]byte
@@ -246,9 +246,9 @@ func FileModePermString(m fs.FileMode) string {
 	return string(buf[:])
 }
 
-// Return the UnixMode with the TypeLetter + PermString + " "
+// Return the Mode with the TypeLetter + PermString + " "
 // The extra space is for compatibility with 4.4BSD strmode
-func (m UnixMode) String() string {
+func (m Mode) String() string {
 	var buf [11]byte
 	buf[0] = m.TypeLetter()
 	setIf(&buf[1], m&(1<<8) != 0, 'r', '-')
@@ -265,7 +265,7 @@ func (m UnixMode) String() string {
 }
 
 // Return the lower 12 bits in a UNIX permission string format
-func (m UnixMode) PermString() string {
+func (m Mode) PermString() string {
 	var buf [9]byte
 	setIf(&buf[0], m&(1<<8) != 0, 'r', '-')
 	setIf(&buf[1], m&(1<<7) != 0, 'w', '-')
@@ -302,15 +302,15 @@ func setIf(c *byte, test bool, t, f byte) {
 	}
 }
 
-// Parse will take three formats and convert them into a UnixMode with the bits set:
+// Parse will take three formats and convert them into a Mode with the bits set:
 //
 // "rwsrwxrwx"   - 9  bytes, Returns the lower 12 bits set
 //
 // "-rwsrwxrwx"  - 10 bytes, Lower 12 bits and includes setting the file ModeType
 //
 // "-rwsrwxrwx " - 11 bytes, Compatibility with newer os's with ACLs and SELinux contexts
-func Parse(in string) (*UnixMode, error) {
-	var m UnixMode
+func Parse(in string) (*Mode, error) {
+	var m Mode
 	switch len(in) {
 	case 9: // Assume a file and only parse the lower bits
 		in = "-" + in
@@ -331,10 +331,10 @@ func Parse(in string) (*UnixMode, error) {
 		case 's':
 			m = m | ModeSocket
 		default:
-			return nil, ErrorUnixMode
+			return nil, ErrorMode
 		}
 	default:
-		return nil, ErrorUnixModeLength
+		return nil, ErrorModeLength
 	}
 
 	var err []string
@@ -353,7 +353,7 @@ func Parse(in string) (*UnixMode, error) {
 	return nil, errors.New(strings.Join(err, ","))
 }
 
-func setBitIf(m *UnixMode, err *[]string, in string, strPos int, t byte, bitPos UnixMode) {
+func setBitIf(m *Mode, err *[]string, in string, strPos int, t byte, bitPos Mode) {
 	switch in[strPos] {
 	case t:
 		*m = *m | bitPos
@@ -362,7 +362,7 @@ func setBitIf(m *UnixMode, err *[]string, in string, strPos int, t byte, bitPos 
 		*err = append(*err, fmt.Sprintf("Invalid %q at position %d", in[strPos], strPos))
 	}
 }
-func setBitIfIf(m *UnixMode, err *[]string, in string, strPos int, tt, tf, ft byte, bitPos1, bitPos2 UnixMode) {
+func setBitIfIf(m *Mode, err *[]string, in string, strPos int, tt, tf, ft byte, bitPos1, bitPos2 Mode) {
 	switch in[strPos] {
 	case tt:
 		*m = *m | bitPos1 | bitPos2
@@ -377,30 +377,30 @@ func setBitIfIf(m *UnixMode, err *[]string, in string, strPos int, tt, tf, ft by
 }
 
 var (
-	ErrorUnixModeLength = errors.New("Invalid UnixMode Length")
-	ErrorUnixMode       = errors.New("Invalid UnixMode")
+	ErrorModeLength = errors.New("Invalid Mode Length")
+	ErrorMode       = errors.New("Invalid Mode")
 )
 
 // IsDir reports whether m describes a directory.
 // That is, it tests for the ModeDir bit being set in m.
-func (m UnixMode) IsDir() bool {
+func (m Mode) IsDir() bool {
 	return m&ModeDir != 0
 }
 
 // IsRegular reports whether m describes a regular file.
 // That is, it tests that the ModeRegular bit is the only type set.
-func (m UnixMode) IsRegular() bool {
+func (m Mode) IsRegular() bool {
 	return m&ModeTypeMask == ModeRegular
 }
 
 // Perm returns the Unix permission bits in m.  That is, it returns the
-// UnixMode & 07777, as the lower 12 bits describe the full permissions.
-func (m UnixMode) Perm() UnixMode {
+// Mode & 07777, as the lower 12 bits describe the full permissions.
+func (m Mode) Perm() Mode {
 	return m & 07777
 }
 
 // Perm returns the Unix permission bits in FileMode m.  That is, it takes
-// the GoLang fs.FileMode and changes the bit flags into the UnixMode permission
+// the GoLang fs.FileMode and changes the bit flags into the Mode permission
 // format without maintaining the type.
 //
 // This is useful for setting permissions on a linux system, like this:
@@ -428,17 +428,17 @@ func (m UnixMode) Perm() UnixMode {
 // locations in a register could trigger SUID on a root owned executable?
 //
 // Ref: https://cs.opensource.google/go/go/+/master:src/os/file_posix.go;l=62-75
-func FileModePerm(m fs.FileMode) UnixMode {
-	return UnixMode(m&0777 | m&fs.ModeSetuid>>12 | m&fs.ModeSetgid>>12 | m&fs.ModeSticky>>11)
+func FileModePerm(m fs.FileMode) Mode {
+	return Mode(m&0777 | m&fs.ModeSetuid>>12 | m&fs.ModeSetgid>>12 | m&fs.ModeSticky>>11)
 }
 
 // Type returns type bits in m (m & ModeTypeMask).
-func (m UnixMode) Type() UnixMode {
+func (m Mode) Type() Mode {
 	return m & ModeTypeMask
 }
 
 // Functional call to os.Chmod with the ability to set permissions based on the
-// UnixMode value.
-func Chmod(name string, m UnixMode) error {
+// Mode value.
+func Chmod(name string, m Mode) error {
 	return os.Chmod(name, fs.FileMode(m)&0777|fs.FileMode(m)&06000<<12|fs.FileMode(m)&01000<<11)
 }

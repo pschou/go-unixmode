@@ -9,7 +9,7 @@ import (
 )
 
 func ExampleString() {
-	m := unixmode.UnixMode(041755)
+	m := unixmode.Mode(041755)
 	fmt.Printf("mode: %q\n", m.String())
 
 	// Output:
@@ -17,7 +17,7 @@ func ExampleString() {
 }
 
 func ExamplePermString() {
-	m := unixmode.UnixMode(0755)
+	m := unixmode.Mode(0755)
 	fmt.Printf("mode: %q\n", m.PermString())
 
 	// Output:
@@ -25,7 +25,7 @@ func ExamplePermString() {
 }
 
 func ExamplePermString_Directory() {
-	m := unixmode.UnixMode(040755)
+	m := unixmode.Mode(040755)
 	fmt.Printf("mode: %q\n", m.PermString())
 
 	// Output:
@@ -33,7 +33,7 @@ func ExamplePermString_Directory() {
 }
 
 func ExamplePermString_StickyBits() {
-	m := unixmode.UnixMode(06755)
+	m := unixmode.Mode(06755)
 	fmt.Printf("mode: %q\n", m.PermString())
 
 	// Output:
@@ -71,7 +71,7 @@ func ExampleString_Socket() {
 }
 
 func ExampleString_Chmod() {
-	m := unixmode.UnixMode(02644 | unixmode.ModeRegular)
+	m := unixmode.Mode(02644 | unixmode.ModeRegular)
 	fmt.Printf("mode: %q\n", m.PermString())
 	unixmode.Chmod("t", m)
 
