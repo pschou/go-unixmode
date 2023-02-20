@@ -416,16 +416,18 @@ func (m Mode) Perm() Mode {
 // disabled the lower 3 bits from being used.  This methodology is to create
 // "Go's portable mode bits"
 //
-// This seems like a duplication of efforts for an extra 3 higher order
-// bits to be assigned where the lower 3 bits when calling os.Chmod and
-// conversely the syscallMode.  This duplication makes life easier for
-// developers only interested in the lower 12, however creating an additional
-// higher order bits just seems odd, as one may ask "why not re-use bits which
-// already have a pretty stable definition?"  With 32 bits in fs.FileMode and
-// twice the declaration of what defines a sticky bit.  This leaves one to
-// wonder: why not duplicate bits and play the game: "guess the bit which was
-// used" when calling Chmod?  Besides, what can go wrong when bits at two
-// locations in a register could trigger SUID on a root owned executable?
+// This seems like a duplication of efforts for an extra 3 higher order bits to
+// be assigned when the lower 3 bits are used when calling os.Chmod and
+// conversely the syscallMode.  This duplication of bit usage makes life easier
+// for developers only interested in the lower 12, however creating an
+// additional higher order bits just seems odd when the lower bits are still
+// used.  One may ask "why not re-use bits which already have a pretty stable
+// definition?"  With 32 bits in fs.FileMode and twice the declaration of what
+// defines a sticky bit, they would have a valid point.  This leaves one to
+// wonder: when bits are duplicated, one can be left playing the game: "guess
+// the bit which was used" when calling Chmod?  Besides, what can go wrong when
+// bits at two locations in a register could trigger SUID on a root owned
+// executable?
 //
 // Ref: https://cs.opensource.google/go/go/+/master:src/os/file_posix.go;l=62-75
 func FileModePerm(m fs.FileMode) Mode {
@@ -440,5 +442,6 @@ func (m Mode) Type() Mode {
 // Functional call to os.Chmod with the ability to set permissions based on the
 // Mode value.
 func Chmod(name string, m Mode) error {
+	// Move the bits back up to the higher order values and then call Chmod
 	return os.Chmod(name, fs.FileMode(m)&0777|fs.FileMode(m)&06000<<12|fs.FileMode(m)&01000<<11)
 }
