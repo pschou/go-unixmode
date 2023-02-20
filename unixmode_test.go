@@ -119,7 +119,7 @@ func ExampleParse() {
 	if m, err := unixmode.Parse("rwxrwx---"); err != nil {
 		log.Fatal(err)
 	} else {
-		fmt.Printf("mode: %04o\n", *m)
+		fmt.Printf("mode: %04o\n", m)
 	}
 	// Output:
 	// mode: 0770
@@ -129,7 +129,7 @@ func ExampleParse_DirectoryMixedRaw() {
 	if m, err := unixmode.Parse("d-w-r-S-wT"); err != nil {
 		log.Fatal(err)
 	} else {
-		fmt.Printf("mode: %04o\n", *m)
+		fmt.Printf("mode: %04o\n", m)
 	}
 	// Output:
 	// mode: 43242
@@ -149,7 +149,7 @@ func ExampleParse_Invalid() {
 	if m, err := unixmode.Parse("drwSrwSrwS "); err != nil {
 		fmt.Println("Err:", err)
 	} else {
-		fmt.Printf("mode: %04o\n", uint32(*m))
+		fmt.Printf("mode: %04o\n", m)
 	}
 	// Output:
 	// Err: Invalid 'S' at position 9

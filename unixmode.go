@@ -309,7 +309,7 @@ func setIf(c *byte, test bool, t, f byte) {
 // "-rwsrwxrwx"  - 10 bytes, Lower 12 bits and includes setting the file ModeType
 //
 // "-rwsrwxrwx " - 11 bytes, Compatibility with newer os's with ACLs and SELinux contexts
-func Parse(in string) (*Mode, error) {
+func Parse(in string) (Mode, error) {
 	var m Mode
 	switch len(in) {
 	case 9: // Assume a file and only parse the lower bits
@@ -331,10 +331,10 @@ func Parse(in string) (*Mode, error) {
 		case 's':
 			m = m | ModeSocket
 		default:
-			return nil, ErrorMode
+			return 0, ErrorMode
 		}
 	default:
-		return nil, ErrorModeLength
+		return 0, ErrorModeLength
 	}
 
 	var err []string
@@ -348,9 +348,9 @@ func Parse(in string) (*Mode, error) {
 	setBitIf(&m, &err, in, 8, 'w', ModeWriteOther)
 	setBitIfIf(&m, &err, in, 9, 't', 'T', 'x', ModeSticky, ModeExecOther)
 	if len(err) == 0 {
-		return &m, nil
+		return m, nil
 	}
-	return nil, errors.New(strings.Join(err, ","))
+	return 0, errors.New(strings.Join(err, ","))
 }
 
 func setBitIf(m *Mode, err *[]string, in string, strPos int, t byte, bitPos Mode) {
