@@ -416,7 +416,7 @@ func (m UnixMode) Perm() UnixMode {
 // disabled the lower 3 bits from being used.  This methodology is to create
 // "Go's portable mode bits"
 //
-// Note: This seems like a duplication of efforts for an extra 3 higher order
+// This seems like a duplication of efforts for an extra 3 higher order
 // bits to be assigned where the lower 3 bits when calling os.Chmod and
 // conversely the syscallMode.  This duplication makes life easier for
 // developers only interested in the lower 12, however creating an additional
