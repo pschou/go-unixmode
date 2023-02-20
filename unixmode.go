@@ -305,7 +305,9 @@ func setIf(c *byte, test bool, t, f byte) {
 // Parse will take three formats and convert them into a UnixMode with the bits set:
 //
 // "rwsrwxrwx"   - 9  bytes, Returns the lower 12 bits set
+//
 // "-rwsrwxrwx"  - 10 bytes, Lower 12 bits and includes setting the file ModeType
+//
 // "-rwsrwxrwx " - 11 bytes, Compatibility with newer os's with ACLs and SELinux contexts
 func Parse(in string) (*UnixMode, error) {
 	var m UnixMode
