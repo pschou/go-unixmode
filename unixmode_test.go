@@ -17,6 +17,22 @@ func ExampleMode_String() {
 	// mode: "drwxr-xr-t "
 }
 
+func ExampleMode_IsDir() {
+	m, _ := unixmode.Parse("dr-s-wSr-T")
+	fmt.Printf("is dir: %v\n", m.IsDir())
+
+	// Output:
+	// is dir: true
+}
+
+func ExampleMode_IsRegular() {
+	m, _ := unixmode.Parse("-r-s-wSr-T")
+	fmt.Printf("is regular: %v\n", m.IsRegular())
+
+	// Output:
+	// is regular: true
+}
+
 func ExampleMode_Perm_parse() {
 	m, _ := unixmode.Parse("r-s-wSr-T")
 	fmt.Printf("mode: %04o\n", m.Perm())
