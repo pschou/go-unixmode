@@ -8,7 +8,7 @@ import (
 	"github.com/pschou/go-unixmode"
 )
 
-func ExampleString() {
+func ExampleMode_String() {
 	m := unixmode.Mode(041755)
 	fmt.Printf("mode: %q\n", m.String())
 
@@ -16,7 +16,7 @@ func ExampleString() {
 	// mode: "drwxr-xr-t "
 }
 
-func ExamplePermString() {
+func ExampleMode_PermString() {
 	m := unixmode.Mode(0755)
 	fmt.Printf("mode: %q\n", m.PermString())
 
@@ -24,7 +24,7 @@ func ExamplePermString() {
 	// mode: "rwxr-xr-x"
 }
 
-func ExamplePermString_Directory() {
+func ExampleMode_PermString_directory() {
 	m := unixmode.Mode(040755)
 	fmt.Printf("mode: %q\n", m.PermString())
 
@@ -32,7 +32,7 @@ func ExamplePermString_Directory() {
 	// mode: "rwxr-xr-x"
 }
 
-func ExamplePermString_StickyBits() {
+func ExampleMode_PermString_stickyBits() {
 	m := unixmode.Mode(06755)
 	fmt.Printf("mode: %q\n", m.PermString())
 
@@ -58,7 +58,7 @@ func ExampleFileModePermString() {
 	// mode: "rwxrwxrwt"
 }
 
-func ExampleString_Socket() {
+func ExampleFileModeString_socket() {
 	if stat, err := os.Lstat("/dev/log"); err != nil {
 		log.Fatal("Could not stat socket", err)
 	} else {
@@ -70,7 +70,7 @@ func ExampleString_Socket() {
 	// mode: "srw-rw-rw- "
 }
 
-func ExampleString_Chmod() {
+func ExampleMode_Chmod() {
 	m := unixmode.Mode(02644 | unixmode.ModeRegular)
 	fmt.Printf("mode: %q\n", m.PermString())
 	unixmode.Chmod("t", m)
@@ -79,7 +79,7 @@ func ExampleString_Chmod() {
 	// mode: "rw-r-Sr--"
 }
 
-func ExampleString_RawSUDO() {
+func ExampleFileModePerm_sUDO() {
 	if stat, err := os.Lstat("/usr/bin/sudo"); err != nil {
 		log.Fatal("Could not stat character device", err)
 	} else {
@@ -91,7 +91,19 @@ func ExampleString_RawSUDO() {
 	// mode: - 4111
 }
 
-func ExampleString_RawCharacter() {
+func ExampleFileModeTypeLetter() {
+	if stat, err := os.Lstat("/dev/null"); err != nil {
+		log.Fatal("Could not stat character device", err)
+	} else {
+		m := stat.Mode()
+		fmt.Printf("mode: %c\n", unixmode.FileModeTypeLetter(m))
+	}
+
+	// Output:
+	// mode: c
+}
+
+func ExampleFileModePerm_rawCharacter() {
 	if stat, err := os.Lstat("/dev/lp0"); err != nil {
 		log.Fatal("Could not stat character device", err)
 	} else {
@@ -103,7 +115,7 @@ func ExampleString_RawCharacter() {
 	// mode: c 0660
 }
 
-func ExampleString_Character() {
+func ExampleFileModeString_character() {
 	if stat, err := os.Lstat("/dev/lp0"); err != nil {
 		log.Fatal("Could not stat character device", err)
 	} else {
@@ -125,7 +137,7 @@ func ExampleParse() {
 	// mode: 0770
 }
 
-func ExampleParse_DirectoryMixedRaw() {
+func ExampleParse_directoryMixedRaw() {
 	if m, err := unixmode.Parse("d-w-r-S-wT"); err != nil {
 		log.Fatal(err)
 	} else {
@@ -135,7 +147,7 @@ func ExampleParse_DirectoryMixedRaw() {
 	// mode: 43242
 }
 
-func ExampleParse_Mixed() {
+func ExampleParse_mixed() {
 	if m, err := unixmode.Parse("-w-r-S-wT"); err != nil {
 		log.Fatal(err)
 	} else {
@@ -145,7 +157,7 @@ func ExampleParse_Mixed() {
 	// mode: 3242
 }
 
-func ExampleParse_Invalid() {
+func ExampleParse_invalid() {
 	if m, err := unixmode.Parse("drwSrwSrwS "); err != nil {
 		fmt.Println("Err:", err)
 	} else {

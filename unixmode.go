@@ -434,6 +434,61 @@ func FileModePerm(m fs.FileMode) Mode {
 	return Mode(m&0777 | m&fs.ModeSetuid>>12 | m&fs.ModeSetgid>>12 | m&fs.ModeSticky>>11)
 }
 
+// Create a unixmode.Mode(uint16) from a FileMode(uint32) by cross referencing bits.
+func New(m fs.FileMode) Mode {
+	out := Mode(m&0777 | m&fs.ModeSetuid>>12 | m&fs.ModeSetgid>>12 | m&fs.ModeSticky>>11)
+
+	switch m & fs.ModeType {
+	/* These are the most common.  */
+	case 0:
+		out |= ModeRegular
+	case fs.ModeDir:
+		out |= ModeDir
+
+	/* Other letters standardized by POSIX 1003.1-2004.  */
+	case fs.ModeDevice:
+		out |= ModeDevice
+	case fs.ModeCharDevice | fs.ModeDevice:
+		out |= ModeCharDevice
+	case fs.ModeSymlink:
+		out |= ModeSymlink
+	case fs.ModeNamedPipe:
+		out |= ModeNamedPipe
+
+	/* Other file types (though not letters) standardized by POSIX.  */
+	case fs.ModeSocket:
+		out |= ModeSocket
+	}
+	return out
+}
+
+// Create a FileMode(uint32) from a unixmode.Mode(uint16) by cross referencing bits.
+func (m Mode) FileMode() fs.FileMode {
+	out := fs.FileMode(m)&0777 | fs.FileMode(m)&06000<<12 | fs.FileMode(m)&01000<<11
+	switch m & ModeTypeMask {
+	/* These are the most common.  */
+	case ModeRegular:
+		// Do nothing
+	case ModeDir:
+		out |= fs.ModeDir
+
+	/* Other letters standardized by POSIX 1003.1-2004.  */
+	case ModeDevice:
+		out |= fs.ModeDevice
+	case ModeCharDevice:
+		out |= fs.ModeCharDevice | fs.ModeDevice
+	case ModeSymlink:
+		out |= fs.ModeSymlink
+	case ModeNamedPipe:
+		out |= fs.ModeNamedPipe
+
+	/* Other file types (though not letters) standardized by POSIX.  */
+	case ModeSocket:
+		out |= fs.ModeSocket
+	}
+	return out
+}
+
 // Type returns type bits in m (m & ModeTypeMask).
 func (m Mode) Type() Mode {
 	return m & ModeTypeMask
