@@ -266,3 +266,11 @@ func ExampleFilemodeModeFilemode() {
 	}
 	// Output:
 }
+
+func ExampleParseFileMode() {
+	val := "augrwxr--r--"
+	fm, _ := unixmode.ParseFileMode(val)
+	fmt.Printf("File Mode: %07o %s == %s\n", fm, val, fm)
+	// Output:
+	// File Mode: 10060000744 augrwxr--r-- == augrwxr--r--
+}

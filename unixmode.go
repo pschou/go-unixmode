@@ -17,16 +17,16 @@
 // and preserve the bits as needed to update file modes, read file modes, or
 // send file modes over the wire in a POSIX compliant format.
 //
-// To set a file permissions using UnixMode:
-//
-//   m := unixmode.Parse("r-xr-sr--")
-//   os.Chmod("myfile", m.Perm())
-//
-// Conversely, to get a file permission in string format:
+// To get a file mode in string format:
 //
 //   stat, _ := os.Lstat("/tmp")
 //   m := stat.FileMode()
 //   fmt.Printf("mode: %q\n", unixmode.FileModeString(m))
+//
+// Conversely, to set a file permissions using UnixMode:
+//
+//   m := unixmode.Parse("r-xr-sr--")
+//   os.Chmod("myfile", m.Perm())
 //
 // Which will return, "drwxrwxrwt "
 //
@@ -352,6 +352,54 @@ func Parse(in string) (Mode, error) {
 		return m, nil
 	}
 	return 0, errors.New(strings.Join(err, ","))
+}
+
+// A function to parse a fs.FileMode string into the standard fs.FileMode
+func ParseFileMode(in string) (fs.FileMode, error) {
+	var m fs.FileMode
+	for _, c := range in[:len(in)-9] {
+		switch c {
+		case 'd':
+			m |= fs.ModeDir
+		case 'a':
+			m |= fs.ModeAppend
+		case 'l':
+			m |= fs.ModeExclusive
+		case 'T':
+			m |= fs.ModeTemporary
+		case 'L':
+			m |= fs.ModeSymlink
+		case 'D':
+			m |= fs.ModeDevice
+		case 'p':
+			m |= fs.ModeNamedPipe
+		case 'S':
+			m |= fs.ModeSocket
+		case 'u':
+			m |= fs.ModeSetuid
+		case 'g':
+			m |= fs.ModeSetgid
+		case 'c':
+			m |= fs.ModeCharDevice
+		case 't':
+			m |= fs.ModeSticky
+		case '?':
+			m |= fs.ModeIrregular
+		default:
+			return 0, ErrorMode
+		}
+	}
+	const rwx = "rwxrwxrwx"
+	for i, c := range in[len(in)-9:] {
+		switch byte(c) {
+		case rwx[i]:
+			m |= 1 << (8 - i)
+		case '-':
+		default:
+			return 0, ErrorMode
+		}
+	}
+	return m, nil
 }
 
 func setBitIf(m *Mode, err *[]string, in string, strPos int, t byte, bitPos Mode) {
